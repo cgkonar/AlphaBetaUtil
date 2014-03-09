@@ -19,6 +19,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.emediplus.dto.NonMedicines;
 import com.emediplus.dto.Providers;
 import com.emediplus.dto.ProvidersCat;
 import com.emediplus.util.ConnectionOBJ;
@@ -27,13 +28,36 @@ public class JustDialGatherChemists {
 
     private static Logger logger = Logger.getLogger(JustDialGatherChemists.class);
 
-    private static String[] pune_areas = {"Bhawani Peth","Erandwana","Ghorpuri Lines","Kalyani Nagar","Kondhwa","Narayan Peth","Hadapsar","Akurdi"};// {"Pimpri","Chinchwad","Kothrud","Aundh","Pashan","Baner","Koregaon Park","Shivaji Nagar","Pune Railway Station","Swargate","Boat club road","Magarpatta","Daund","Chikhli","Kalewadi","Kasarwadi","Phugewadi","Pimple Saudagar","Narayan peth","Talegaon","Kasba peth","Shirur","Bhor","Mulshi","Wadgaon","Welhe","Ambegaon","Junnar","Rajgurunagar","Baramati","Indapur","Purandhar","Bhawani Peth","Erandwana","Ghorpuri Lines","Kalyani Nagar","Kondhwa","Narayan Peth","Hadapsar","Akurdi"};
+    // Pune areas....
+    private static String city = "Pune";
+    private static String[] areas = {"Pimpri","Chinchwad","Kothrud","Aundh","Pashan","Baner","Koregaon Park","Shivaji Nagar","Pune Railway Station",
+    								"Swargate","Boat club road","Magarpatta","Daund","Chikhli","Kalewadi","Kasarwadi","Phugewadi","Pimple Saudagar",
+    								"Narayan peth","Talegaon","Kasba peth","Shirur","Bhor","Mulshi","Wadgaon","Welhe","Ambegaon","Junnar","Rajgurunagar",
+    								"Baramati","Indapur","Purandhar","Bhawani Peth","Erandwana","Ghorpuri Lines","Kalyani Nagar","Kondhwa","Narayan Peth",
+    								"Hadapsar","Akurdi"};
+    
+    // Mumbai areas....
+    /* http://www.propertykhazana.com/localities/mumbai
+    private static String city = "Mumbai";
+    private static String[] areas = {"Mira Road", "Chembur", "Andheri", "Kharghar", "Malad", "Bandra", "Goregoan", "Kandivali", "Ghodbunder Road", 
+    				"Navi Mumbai", "Bhandup", "BOrivali", "Panvel", "Khar", "Agripada", "Airoli", "Altamount Road", "Ambarnath", "Amboli", "Antop Hill", 
+    				"Badlapur", "Belapur", "Bhayandar", "Bhindi Bazaar", "Bhiwandi", "Bhoiwada", "Bhuleshwar", "Boisar", "Breach Candy", "Byculla", "CBD Belapur", 
+    				"Chakala", "Chandivali", "Charkop", "Charni Road", "Chinch Bandar", "Chinchpokli", "Chowpatti", "Chuna Bhatti", "Churchgate", "Colaba", 
+    				"Crawford Market", "Cuffe Parade", "Currey Road", "Dadar", "Dahisar", "Deonar", "Dharavi", "Dhobhi Talao", "Dockyard", "Dombivali", 
+    				"Dongri", "Elphinstone Road", "Flora Fountain", "Fort", "Gamdevi", "Ghansoli", "Ghatkopar", "Girgaon", "Govandi", "Grant Road", 
+    				"Haji Ali", "Jogeshwari", "Juhu", "Kalamboli", "Kalbadevi", "Kalina", "Kalwa", "Kalyan", "Kamothe", "Kanjur Marg", "Kemps Corner", 
+    				"Khar", "Khopoli", "Kurla", "LBS Marg", "Lalbaug", "Parel", "Lokhandwala", "Mahalaxmi", "Mahape", "Mahim", "Malabar Hill", 
+    				"Aarey Milk Colony", "Oshiwara", "Mazagon Dock", "Mumbai Central", "Prabhadevi", "Ramwadi", "Seepz", "Santacruz", "Sewri", "Versova", 
+    				"Wadala", "Woril", "Vasai", "Titawala"};
+    */
     
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
 		Connection mycon = null;
 		ConnectionOBJ obj = new ConnectionOBJ();
+		
+		String websiteurl = "";
 		
 		try
 		{
@@ -53,11 +77,11 @@ public class JustDialGatherChemists {
 //			File input = new File("C:\\Personal\\PHP\\DataGather\\tmp\\justdial_page-1.html");
 //			Document doc = Jsoup.parse(input, "UTF-8", "http://example.com/");
 			
-			for(int i=0; i<pune_areas.length; i++)
+			for(int i=0; i<areas.length; i++)
 			{
 				for(int pageno=1; pageno<=20; pageno++)
 				{
-					String websiteurl = "http://www.justdial.com/Pune/Chemists-<near>-" + pune_areas[i] + "/ct-3722/page-"+pageno;
+					websiteurl = "http://www.justdial.com/" + city + "/Chemists-<near>-" + areas[i] + "/ct-3722/page-"+pageno;
 					System.out.println(websiteurl);
 					
 					try
@@ -71,14 +95,14 @@ public class JustDialGatherChemists {
 								  .timeout(3000)
 								  .post();
 		
-					//	logger.info(doc);
+						//logger.info(doc);
 						
 						Elements lists = doc.select("section.jgbg");
 				        System.out.println("\nlists:" + lists.size());
 			           	for (Element list : lists) 
 			           	{
-		//	           		if(rowctr ==1)
-		//	           		{
+			      //     		if(rowctr ==9)
+			       //    		{
 			           			System.out.println("\nrowno:" + rowctr);
 			           			
 			           			providers = null;
@@ -88,25 +112,37 @@ public class JustDialGatherChemists {
 			           			{
 			           				System.out.println("url: " + link.attr("href"));
 			           				url = link.attr("href");
-			           				name = link.text();
+			           				name = link.attr("title");
 			           			}
 		
+			           			/*
 			           			Elements locs = list.select("p.jaid");
 			           			for(Element loc : locs)
 			           			{
-			           				System.out.println("area: " + loc.text().substring(0, loc.text().indexOf('|')));
+			           				System.out.println("loc.text():" + loc.text() + "]]]]]]]");
+			           				System.out.println("area: " + loc.text().substring(0, loc.text().indexOf('|')) + "].........");
 			           				area = loc.text().substring(0, loc.text().indexOf('|'));
 			           			}
-		
-			           	
+								*/
+	           		
 			           			logger.info(url);
 			           			
-		           				// fetch Detail Info
-		           				providers = fetchDetailInfo(url, name, area);
-		//	           		}
+			           			String providername = name.substring(0, name.indexOf(" in "));
+			           			String providerarea = name.substring(name.indexOf(" in ")+4, name.indexOf(", " + city));
+			           			
+			           			System.out.println(">>>>>>>>>area:" + providerarea + "]");
+			           			
+			           			if(!Providers.checkProviderExist(logger, mycon, city, providername, providerarea))
+			           			{
+			           				// fetch Detail Info
+			           				providers = fetchDetailInfo(mycon, url, providername, providerarea);
+			           				Providers.updateDatabase(logger, mycon, providers);
+			           			}
+			           			else {
+			           				System.out.println("provider already existing in database");
+			           			}
+			         //  		}
 			           	
-		           			Providers.updateDatabase(logger, mycon, providers);
-			        		
 			        		rowctr++;
 				        }
 					}
@@ -114,6 +150,7 @@ public class JustDialGatherChemists {
 					{
 						System.out.println("Exception:" +kk);
 						logger.info(kk);
+						Providers.updateDatabaseForErrors(logger, mycon, websiteurl, kk.toString());
 					}
 				}
 			}
@@ -191,7 +228,7 @@ public class JustDialGatherChemists {
 		}
 	}
 	
-	private static Providers fetchDetailInfo(String url, String name, String area)
+	private static Providers fetchDetailInfo(Connection mycon, String url, String name, String area)
 	{
 		Providers providers = new Providers();
 
@@ -211,7 +248,7 @@ public class JustDialGatherChemists {
 					  .timeout(3000)
 					  .post();
 			
-//			logger.info(doc);
+			//logger.info(doc);
 			
 			providers.setUrl(url);
 			System.out.println("Name:" + name);			
@@ -238,6 +275,27 @@ public class JustDialGatherChemists {
     	            }
 	        }
            	
+			Elements lts = doc.select("input#lt");
+           	for (Element lt : lts) 
+           	{
+           		providers.setLt(lt.attr("value"));
+           		System.out.println("LT>....." + lt.attr("value"));
+           	}
+
+			Elements lns = doc.select("input#ln");
+           	for (Element ln : lns) 
+           	{
+           		providers.setLn(ln.attr("value"));
+           		System.out.println("LN>....." + ln.attr("value"));
+           	}
+
+			Elements adds = doc.select("input#add");
+           	for (Element add : adds) 
+           	{
+           		providers.setAddress(add.attr("value"));
+           		System.out.println("ADD>....." + add.attr("value"));
+           	}
+           	
            	String listedcategories = "";
            	
            	Elements listedcats = doc.select("section#alsol a");
@@ -255,15 +313,22 @@ public class JustDialGatherChemists {
    			Matcher m = p.matcher(providers.getAddress());
    			m.matches();
            	
-   			providers.setCity("Pune");
+   			providers.setCity(city);
    			providers.setProvider_type("C");
-   			providers.setPin_code(m.group(1));
+   			try
+   			{
+   				providers.setPin_code(m.group(1));
+   			}
+   			catch(Exception px)
+   			{
+   			}
    			
    			System.out.println("pincode:" + providers.getPin_code());
    		}
 		catch(Exception e)
 		{
 			System.out.print("fetchDetailInfo:" + e);
+			Providers.updateDatabaseForErrors(logger, mycon, url, e.toString());
 		}
 		
 		return providers;

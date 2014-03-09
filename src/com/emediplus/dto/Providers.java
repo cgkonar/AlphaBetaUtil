@@ -136,6 +136,25 @@ public class Providers {
 	String landmark = "";
 	String working_hours = "";
 	String listed_categories = "";
+	String lt = "";
+	public String getLt() {
+		return lt;
+	}
+
+	public void setLt(String lt) {
+		this.lt = (lt == null)?"":lt.trim();
+	}
+
+	public String getLn() {
+		return ln;
+	}
+
+	public void setLn(String ln) {
+		this.ln = (ln == null)?"":ln.trim();
+	}
+
+
+	String ln = "";
 	
 	public String getListed_categories() {
 		return listed_categories;
@@ -146,16 +165,14 @@ public class Providers {
 	}
 	
 	
-	public static void updateDatabase(Logger logger, Connection mycon, Providers providers)
+	public static boolean checkProviderExist(Logger logger, Connection mycon, String city, String provider_name, String area)
 	{
        	PreparedStatement myst = null;
-       	PreparedStatement myst_insert = null;
        	ResultSet myrs = null;
        	boolean rowfound = false;
-       	int insResult = 0;
        	try
        	{
-       		String mysql = "select count(*) from providers where lower(trim(url)) like '%" + providers.getUrl().trim().toLowerCase() + "%'";
+       		String mysql = "select count(*) from providers where city = '" + city + "' and provider_name = '" + provider_name.trim() + "' and area = '" + area.trim() + "'";
        		myst = mycon.prepareStatement(mysql);	
        		myrs = myst.executeQuery();
 			while(myrs.next())
@@ -165,39 +182,62 @@ public class Providers {
 	       		
 			}
 
-			if(rowfound)
-			{
-				logger.info("SQL:" + mysql);
-				logger.info(providers.getProvider_name() + " : found : " + rowfound);
-			}
+       	}
+       	catch (Exception e)
+       	{
+       		logger.info("checkProviderExist Exception:" + e);
+       	}
+       	finally
+       	{
+       		try
+       		{
+       			if(myst != null) myst.close();
+       		}
+       		catch(Exception ef)
+       		{
+       			
+       		}
+       	}
+       	
+       	return rowfound;
+	}
+	
+	public static void updateDatabase(Logger logger, Connection mycon, Providers providers)
+	{
+       	PreparedStatement myst = null;
+       	PreparedStatement myst_insert = null;
+       	ResultSet myrs = null;
+       	boolean rowfound = false;
+       	int insResult = 0;
+       	String mysql = "";
+       	try
+       	{
+			mysql = "insert into providers(url, provider_type, provider_name, website, mobile, phone, contact_person, area, address, city, pin_code, landmark, working_hours, listed_categories, latitude, longitude) " +
+					" values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			
-			if(!rowfound)
-			{
-				mysql = "insert into providers(url, provider_type, provider_name, website, mobile, phone, contact_person, area, address, city, pin_code, landmark, working_hours, listed_categories) " +
-						" values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-				
-				myst_insert = mycon.prepareStatement(mysql);	
-				myst_insert.setString(1,  providers.getUrl());
-				myst_insert.setString(2, providers.getProvider_type());
-				myst_insert.setString(3, providers.getProvider_name());
-				myst_insert.setString(4, providers.getWebsite());
-				myst_insert.setString(5, providers.getMobile());
-				myst_insert.setString(6, providers.getPhone());
-				myst_insert.setString(7, providers.getContact_person());
-				myst_insert.setString(8, providers.getArea());
-	       		myst_insert.setString(9, providers.getAddress());
-	       		myst_insert.setString(10, providers.getCity());
-	       		myst_insert.setString(11, providers.getPin_code());
-	       		myst_insert.setString(12, providers.getLandmark());
-	       		myst_insert.setString(13, providers.getWorking_hours());
-	       		myst_insert.setString(14, providers.getListed_categories());
-	       		
-	       		insResult = myst_insert.executeUpdate();
-	       		
-	       		System.out.println("insert Result:" + insResult);
-	       		
-	       		mycon.commit();
-			}
+			myst_insert = mycon.prepareStatement(mysql);	
+			myst_insert.setString(1,  providers.getUrl());
+			myst_insert.setString(2, providers.getProvider_type());
+			myst_insert.setString(3, providers.getProvider_name());
+			myst_insert.setString(4, providers.getWebsite());
+			myst_insert.setString(5, providers.getMobile());
+			myst_insert.setString(6, providers.getPhone());
+			myst_insert.setString(7, providers.getContact_person());
+			myst_insert.setString(8, providers.getArea());
+       		myst_insert.setString(9, providers.getAddress());
+       		myst_insert.setString(10, providers.getCity());
+       		myst_insert.setString(11, providers.getPin_code());
+       		myst_insert.setString(12, providers.getLandmark());
+       		myst_insert.setString(13, providers.getWorking_hours());
+       		myst_insert.setString(14, providers.getListed_categories());
+       		myst_insert.setString(15, providers.getLt());
+       		myst_insert.setString(16, providers.getLn());
+       		
+       		insResult = myst_insert.executeUpdate();
+       		
+       		System.out.println("insert Result:" + insResult);
+       		
+       		mycon.commit();
        	}
        	catch (Exception e)
        	{
@@ -217,4 +257,49 @@ public class Providers {
        		}
        	}
 	}
+
+	public static void updateDatabaseForErrors(Logger logger, Connection mycon, String providerUrl, String ex)
+	{
+       	PreparedStatement myst = null;
+       	PreparedStatement myst_insert = null;
+       	int insResult = 0;
+       	try
+       	{
+ 			String mysql = "insert into providers_missing_dump(provider_url, exception) " +
+					" values(?, ?)";
+			
+			myst_insert = mycon.prepareStatement(mysql);	
+			myst_insert.setString(1, providerUrl);
+			myst_insert.setString(2, ex);
+       		
+       		insResult = myst_insert.executeUpdate();
+       		System.out.println("insert providers_missing_dump:" + insResult);
+       		
+       		mycon.commit();
+       	}
+       	catch (Exception e)
+       	{
+       		try
+       		{
+       			mycon.rollback();
+       		}
+       		catch(Exception r)
+       		{
+       		}
+       		logger.info("updateDatabaseForErrors Exception:" + e);
+       	}
+       	finally
+       	{
+       		try
+       		{
+       			if(myst != null) myst.close();
+       			if(myst_insert != null) myst_insert.close();
+       		}
+       		catch(Exception ef)
+       		{
+       			
+       		}
+       	}
+	}
+
 }
